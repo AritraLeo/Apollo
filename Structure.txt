@@ -1,0 +1,15 @@
+app/
+  - About.tsx
+  - BlogPost.tsx
+  - LandingPage.tsx
+  - components/
+    - Camera.tsx
+    - Scoreboard.tsx
+
+styles/
+  - global.css
+  - theme.css
+
+public/
+  - fonts/
+  - images/
