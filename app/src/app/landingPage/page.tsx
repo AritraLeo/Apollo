@@ -1,10 +1,12 @@
+"use client"; // This is a client component
+
 import React, { useState } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
-import Camera from './components/Camera';
-import Scoreboard from './components/Scoreboard';
+import Camera from '../components/Camera';
+import Scoreboard from '../components/Scoreboard';
 
-const LandingPage: React.FC = () => {
+export default function LandingPage() {
   const [score, setScore] = useState<number | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
@@ -30,5 +32,3 @@ const LandingPage: React.FC = () => {
     </>
   );
 };
-
-export default LandingPage;
