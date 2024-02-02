@@ -14,12 +14,19 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
 
   useEffect(() => {
     async function loadModels() {
-      await faceApi.nets.ssdMobilenetv1.loadFromUri('/models');
-      await faceApi.nets.faceLandmark68Net.loadFromUri('/models');
-      setLoading(false);
+      try {
+        await faceApi.nets.ssdMobilenetv1.loadFromUri('/models');
+        console.log("SSD model loaded successfully");
+        await faceApi.nets.faceLandmark68Net.loadFromUri('/models');
+        console.log("Landmark model loaded successfully");
+        setLoading(false);
+      } catch (error) {
+        console.error("Error loading models:", error);
+      }
     }
     loadModels();
   }, []);
+  
 
   const handleCaptureClick = () => {
     if (!webcamRef.current) return;
@@ -38,6 +45,8 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
     const processCapturedImage = async () => {
       if (!capturedImage) return;
 
+      
+
       const img = new Image();
       img.src = URL.createObjectURL(capturedImage);
 
@@ -46,6 +55,10 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
       });
 
       const detectionsWithLandmarks = await faceApi.detectAllFaces(img).withFaceLandmarks();
+
+      console.log("Captured image dimensions:", img.width, img.height);
+      console.log("Tensor shape before processing:", detectionsWithLandmarks);
+
 
       if (detectionsWithLandmarks.length > 0) {
         const landmarks = detectionsWithLandmarks[0].landmarks;
@@ -56,6 +69,8 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
         const noseToChin = landmarks.positions[8].y - landmarks.positions[33].y;
 
         const score = ((foreheadToEyes + eyesToNose) / noseToChin) * 1.618 + eyesToNose / foreheadToEyes;
+        console.log(score);
+        
         handleScore(score);
       }
     };
@@ -70,7 +85,7 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
   return (
     <div className="webcam-container bg-white p-4">
       <Webcam ref={webcamRef} width={480} height={360} screenshotFormat="image/jpeg" />
-      <button className="capture-button bg-pink text-white px-4 py-2 mt-4" onClick={handleCaptureClick}>
+      <button className="capture-button border-blue-500 bg-pink text-black px-4 py-2 mt-4" onClick={handleCaptureClick}>
         Capture Image
       </button>
     </div>
