@@ -1,16 +1,18 @@
+// Camera.tsx
+
 import React, { useRef, useState, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import * as faceApi from 'face-api.js';
 
 interface CameraProps {
   handleScore: (score: number) => void;
-  handleCapture: (image: any) => void;
+  handleCapture: (image: string) => void;
 }
 
 const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
   const webcamRef = useRef<Webcam | null>(null);
   const [loading, setLoading] = useState(true);
-  const [capturedImage, setCapturedImage] = useState<Blob | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadModels() {
@@ -26,15 +28,13 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
     }
     loadModels();
   }, []);
-  
 
   const handleCaptureClick = () => {
     if (!webcamRef.current) return;
     const image = webcamRef.current.getScreenshot();
 
     if (image) {
-      const blob = new Blob([image], { type: 'image/jpeg' });
-      setCapturedImage(blob);
+      setCapturedImage(image);
       handleCapture(image);
     } else {
       console.error("Failed to capture image");
@@ -45,10 +45,8 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
     const processCapturedImage = async () => {
       if (!capturedImage) return;
 
-      
-
       const img = new Image();
-      img.src = URL.createObjectURL(capturedImage);
+      img.src = URL.createObjectURL(dataURItoBlob(capturedImage));
 
       await new Promise((resolve) => {
         img.onload = resolve;
@@ -59,7 +57,6 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
       console.log("Captured image dimensions:", img.width, img.height);
       console.log("Tensor shape before processing:", detectionsWithLandmarks);
 
-
       if (detectionsWithLandmarks.length > 0) {
         const landmarks = detectionsWithLandmarks[0].landmarks;
 
@@ -69,7 +66,7 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
         const noseToChin = landmarks.positions[8].y - landmarks.positions[33].y;
 
         const score = ((foreheadToEyes + eyesToNose) / noseToChin) * 1.618 + eyesToNose / foreheadToEyes;
-        console.log(score);
+        console.log("Score:", score);
         
         handleScore(score);
       }
@@ -93,3 +90,15 @@ const Camera: React.FC<CameraProps> = ({ handleScore, handleCapture }) => {
 };
 
 export default Camera;
+
+// Utility function for converting data URI to Blob
+function dataURItoBlob(dataURI: string) {
+  const byteString = atob(dataURI.split(',')[1]);
+  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mimeString });
+}

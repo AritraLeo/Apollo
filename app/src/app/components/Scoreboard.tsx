@@ -1,3 +1,5 @@
+// Scoreboard.tsx
+
 import React from 'react';
 
 interface ScoreboardProps {
